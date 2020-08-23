@@ -1,0 +1,1 @@
+/home/frodriguez/bin/crearMigraciones.sh
