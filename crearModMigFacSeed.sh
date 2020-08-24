@@ -34,7 +34,7 @@ do
     shift
 done
 
-if [ -z "${PROYECTO}" -o -z "${TAREAS}" -o -z "${EXCEPCIONES}" ]; then
+if [ -z "${PROYECTO}" -o -z "${TABLAS}" -o -z "${EXCEPCIONES}" ]; then
     echo "SINTAXIS"
     echo "`basename ${0}` <ARGS>"
     echo "ARGS: -p nombreProyecto                        Nombre del proyecto Laravel = Nombre base de datos"
@@ -43,11 +43,18 @@ if [ -z "${PROYECTO}" -o -z "${TAREAS}" -o -z "${EXCEPCIONES}" ]; then
     exit
 fi
 
-cd ${WWW}
-git clone git clone https://github.com/softfarr/${PROYECTO}.git
+if false;then
+    cd ${WWW}
+    if [ -d "${PROYECTO}" ]; then
+        rm -rf ${WWW}/${PROYECTO}
+    fi
+    git clone https://github.com/softfarr/${PROYECTO}.git
+
+    cd ${WWW}/${PROYECTO}
+    composer install
+fi
 
 cd ${WWW}/${PROYECTO}
-composer install
 
 php artisan migrate:reset
 
@@ -66,9 +73,9 @@ do
     done
     TABLACAP=`echo ${TABLA} | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2,length($0)-1))}'`
 
-    if [ ! ${TABLA_EXCLUIDA} ]; then
-        rm -f database/seeds/*${TABLACAP}*.php
-        rm -f database/factories/${TABLACAP}*.php
+    if ! ${TABLA_EXCLUIDA} ; then
+        rm -f database/seeds/Tabla${TABLACAP}Seeder.php
+        rm -f database/factories/${TABLACAP}Factory.php
         rm -f app/Models/${TABLACAP}.php
     fi
     rm -f database/migrations/*${TABLA}.php
