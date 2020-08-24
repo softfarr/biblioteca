@@ -102,25 +102,25 @@ do
 
     echo "Migración de tabla ${TABLA}."
     echo "Busque la migración en database/migrations/AAAA_MM_DD_hhmmss_"${TABLA}".php"
-    echo "No olvide agregar las instrucciones de las columnas. Ejemplo:"
-    echo "\$table->string('nombre',50)->unique();"
-    echo "Si la tabla tiene llaves foráneas, agregue el siguiente código después de la instrucción:"
-    echo "\$table->bigIncrements('id');"
-    echo "Reemplace nombreTabla1 y nombreTabla2 por los nombres de las tablas correspondientes:"
-    echo "//Inicio llaves foráneas"
-    echo "\$tabla1='nombreTabla1';"
-    echo "\$tabla2='nombreTabla2';"
-    echo "\$campo1=\$tabla1.'_id';"
-    echo "\$fk_name1='fk_'.\$tabla1.\$tabla2.'_'.\$tabla1;"
-    echo "\$campo2=\$tabla2.'_id';"
-    echo "\$fk_name2='fk_'.\$tabla1.\$tabla2.'_'.\$tabla2;"
-    echo "\$table->unsignedBigInteger(\$campo1);"
-    echo "\$table->foreign(\$campo1,\$fk_name1)->references('id')->on(\$tabla1)->onDelete('restrict')->onUpdate('restrict');"
-    echo "\$table->unsignedBigInteger(\$campo2);"
-    echo "\$table->foreign(\$campo2,\$fk_name2)->references('id')->on(\$tabla2)->onDelete('restrict')->onUpdate('restrict');"
-    echo "//Fin llaves foráneas"
     php artisan make:migration crear_tabla_${TABLA} --create=${TABLA}
     if ${ES_TABLA_CON_FORANEAS} ; then
+        echo "No olvide agregar las instrucciones de las columnas. Ejemplo:"
+        echo "\$table->string('nombre',50)->unique();"
+        echo "Si la tabla tiene llaves foráneas, agregue el siguiente código después de la instrucción:"
+        echo "\$table->bigIncrements('id');"
+        echo "Reemplace nombreTabla1 y nombreTabla2 por los nombres de las tablas correspondientes:"
+        echo "//Inicio llaves foráneas"
+        echo "\$tabla1='nombreTabla1';"
+        echo "\$tabla2='nombreTabla2';"
+        echo "\$campo1=\$tabla1.'_id';"
+        echo "\$fk_name1='fk_'.\$tabla1.\$tabla2.'_'.\$tabla1;"
+        echo "\$campo2=\$tabla2.'_id';"
+        echo "\$fk_name2='fk_'.\$tabla1.\$tabla2.'_'.\$tabla2;"
+        echo "\$table->unsignedBigInteger(\$campo1);"
+        echo "\$table->foreign(\$campo1,\$fk_name1)->references('id')->on(\$tabla1)->onDelete('restrict')->onUpdate('restrict');"
+        echo "\$table->unsignedBigInteger(\$campo2);"
+        echo "\$table->foreign(\$campo2,\$fk_name2)->references('id')->on(\$tabla2)->onDelete('restrict')->onUpdate('restrict');"
+        echo "//Fin llaves foráneas"
         MIGRACION_CON_FORANEAS=`ls database/migrations/*_${TABLA}.php`
         cat ${MIGRACION_CON_FORANEAS} | awk -v p="'" -v tabla1=${TABLA1} -v tabla2=${TABLA2} '
         index($0,"$table->bigIncrements(" p "id" p ");")>0{
@@ -129,23 +129,20 @@ do
             print "\t\t\t" "$tabla1=" p tabla1 p ";"
             print "\t\t\t" "$tabla2=" p tabla2 p ";"
             print "\t\t\t" "$campo1=$tabla1." p "_id" p ";"
-            print "\t\t\t" "$fk_name1=" p "fk_" p ".\$tabla1.\$tabla2." p "_" p ".\$tabla1;"
-            print "\t\t\t" "$campo2=\$tabla2." p "_id" p ";"
-            print "\t\t\t" "$fk_name2=" p "fk_" p ".\$tabla1.\$tabla2." p "_" p ".\$tabla2;"
-            print "\t\t\t" "$table->unsignedBigInteger(\$campo1);"
-            print "\t\t\t" "$table->foreign(\$campo1,\$fk_name1)->references(" p "id" p ")->on(\$tabla1)->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
-            print "\t\t\t" "$table->unsignedBigInteger(\$campo2);"
-            print "\t\t\t" "$table->foreign(\$campo2,\$fk_name2)->references(" p "id" p ")->on(\$tabla2)->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
+            print "\t\t\t" "$fk_name1=" p "fk_" p ".$tabla1.$tabla2." p "_" p ".$tabla1;"
+            print "\t\t\t" "$campo2=$tabla2." p "_id" p ";"
+            print "\t\t\t" "$fk_name2=" p "fk_" p ".$tabla1.$tabla2." p "_" p ".$tabla2;"
+            print "\t\t\t" "$table->unsignedBigInteger($campo1);"
+            print "\t\t\t" "$table->foreign($campo1,$fk_name1)->references(" p "id" p ")->on($tabla1)->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
+            print "\t\t\t" "$table->unsignedBigInteger($campo2);"
+            print "\t\t\t" "$table->foreign($campo2,$fk_name2)->references(" p "id" p ")->on($tabla2)->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
             print "\t\t\t" "//Fin llaves foráneas"
         }
         index($0,"$table->bigIncrements(" p "id" p ");")==0{print $0}
         ' > ${MIGRACION_CON_FORANEAS}1
         mv ${MIGRACION_CON_FORANEAS}1 ${MIGRACION_CON_FORANEAS}
     fi
-    continue
     echo
-
-    continue
     if ${ES_TABLA_EXCLUIDA} ; then
         continue
     fi
@@ -190,6 +187,8 @@ do
     php artisan make:seeder Tabla${TABLACAP}Seeder
     cat database/seeds/Tabla${TABLACAP}Seeder.php | awk -v tabla=${TABLACAP} 'NR==3{print "use App\\Models\\" tabla ";";print $0;next};index($0,"//")>0{print "\t \t" "factory(" tabla "::class)->times(50)->create();"};index($0,"//")==0&&NR!=3{print $0}' > database/seeds/Tabla${TABLACAP}Seeder.php1
     mv database/seeds/Tabla${TABLACAP}Seeder.php1 database/seeds/Tabla${TABLACAP}Seeder.php
+    cat database/seeds/DatabaseSeeder.php | awk -v tabla=${TABLACAP} 'index($0,"// $this->call(UsersTableSeeder::class);")>0{print $0; print "\t \t" "$this->call(Tabla" tabla "Seeder::class);"};index($0,"// $this->call(UsersTableSeeder::class);")==0{print $0}' > database/seeds/DatabaseSeeder.php1
+    mv database/seeds/DatabaseSeeder.php1 database/seeds/DatabaseSeeder.php
     echo
 done
 
