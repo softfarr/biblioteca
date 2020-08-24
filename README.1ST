@@ -1,0 +1,5 @@
+Para crear y complementar las migraciones, modelos, factories y seeders, automáticamente, ejecute el siguiente comando:
+
+./crearModMigFacSeed.sh -p biblioteca -t "permiso rol usuario libro permiso_rol usuario_rol libro_usuario" -e "permiso_rol usuario_rol libro_usuario" -f "permiso_rol:permiso,rol usuario_rol:usuario,rol libro_usuario:libro,usuario"
+
+Lea los comentarios y complemente los scripts PHP.

@@ -126,16 +126,14 @@ do
         index($0,"$table->bigIncrements(" p "id" p ");")>0{
             print $0
             print "\t\t\t" "//Inicio llaves foráneas"
-            print "\t\t\t" "$tabla1=" p tabla1 p ";"
-            print "\t\t\t" "$tabla2=" p tabla2 p ";"
-            print "\t\t\t" "$campo1=$tabla1." p "_id" p ";"
-            print "\t\t\t" "$fk_name1=" p "fk_" p ".$tabla1.$tabla2." p "_" p ".$tabla1;"
-            print "\t\t\t" "$campo2=$tabla2." p "_id" p ";"
-            print "\t\t\t" "$fk_name2=" p "fk_" p ".$tabla1.$tabla2." p "_" p ".$tabla2;"
-            print "\t\t\t" "$table->unsignedBigInteger($campo1);"
-            print "\t\t\t" "$table->foreign($campo1,$fk_name1)->references(" p "id" p ")->on($tabla1)->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
-            print "\t\t\t" "$table->unsignedBigInteger($campo2);"
-            print "\t\t\t" "$table->foreign($campo2,$fk_name2)->references(" p "id" p ")->on($tabla2)->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
+            campo1=tabla1 "_id"
+            fk_name1="fk_" tabla1 tabla2 "_" tabla1
+            campo2=tabla2 "_id"
+            fk_name2="fk_" tabla1 tabla2 "_" tabla2
+            print "\t\t\t" "$table->unsignedBigInteger(" p campo1 p ");"
+            print "\t\t\t" "$table->foreign(" p campo1 p "," p fk_name1 p ")->references(" p "id" p ")->on(" p tabla1 p ")->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
+            print "\t\t\t" "$table->unsignedBigInteger(" p campo2 p ");"
+            print "\t\t\t" "$table->foreign(" p campo2 p "," p fk_name2 p ")->references(" p "id" p ")->on(" p tabla2 p ")->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
             print "\t\t\t" "//Fin llaves foráneas"
         }
         index($0,"$table->bigIncrements(" p "id" p ");")==0{print $0}
