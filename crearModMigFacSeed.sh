@@ -9,7 +9,9 @@
 #segun sea el caso.
 
 export TABLAS="permiso rol usuario libro permiso_rol usuario_rol libro_usuario"
+export EXCEPCIONES="permiso_rol usuario_rol libro_usuario"
 export PROYECTO=biblioteca
+export TABLA_EXCLUIDA=
 
 clear
 
@@ -21,11 +23,20 @@ echo "DROP SCHEMA IF EXISTS \`"${PROYECTO}"\` ; CREATE SCHEMA IF NOT EXISTS \`"$
 
 for TABLA in ${TABLAS}
 do
+    for EXCEPCION in ${EXCEPCIONES}
+    do
+        TABLA_EXCLUIDA=[ ${TABLA} == ${EXCEPCIONES} ]
+        if ${TABLA_EXCLUIDA}; then
+            break
+        fi
+    done
     TABLACAP=`echo ${TABLA} | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2,length($0)-1))}'`
 
-    rm -f database/seeds/*${TABLACAP}*.php
-    rm -f database/factories/${TABLACAP}*.php
-    rm -f app/Models/${TABLACAP}.php
+    if [ ! ${TABLA_EXCLUIDA} ]; then
+        rm -f database/seeds/*${TABLACAP}*.php
+        rm -f database/factories/${TABLACAP}*.php
+        rm -f app/Models/${TABLACAP}.php
+    fi
     rm -f database/migrations/*${TABLA}.php
 
     echo "Migración de tabla ${TABLA}."
@@ -49,6 +60,9 @@ do
     echo "//Fin llaves foráneas"
     php artisan make:migration crear_tabla_${TABLA} --create=${TABLA}
     echo
+    if ${TABLA_EXCLUIDA} ; then
+        continue
+    fi
     echo "Modelo de tabla ${TABLA}."
     echo "Busque el modelo en app/Models/"${TABLACAP}".php"
     echo "No olvide agregar la instruccion:"
