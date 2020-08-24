@@ -25,9 +25,11 @@ for TABLA in ${TABLAS}
 do
     for EXCEPCION in ${EXCEPCIONES}
     do
-        TABLA_EXCLUIDA=[ ${TABLA} == ${EXCEPCIONES} ]
-        if ${TABLA_EXCLUIDA}; then
+        if [ ${TABLA} == ${EXCEPCION} ]; then
+            TABLA_EXCLUIDA=true
             break
+        else
+            TABLA_EXCLUIDA=false
         fi
     done
     TABLACAP=`echo ${TABLA} | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2,length($0)-1))}'`
