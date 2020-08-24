@@ -8,16 +8,48 @@
 #columnas, las migraciones y seeders con lo mismo que las migraciones, 
 #segun sea el caso.
 
+export WWW=/var/www/html
 export TABLAS="permiso rol usuario libro permiso_rol usuario_rol libro_usuario"
 export EXCEPCIONES="permiso_rol usuario_rol libro_usuario"
-export PROYECTO=biblioteca
+export PROYECTO=
 export TABLA_EXCLUIDA=
 
 clear
 
-php artisan migrate:reset
+while [ ! -z "${*}" ]
+do
+    case ${1} in
+        -p) shift
+            PROYECTO=${1}
+            ;;
+        -t) shift
+            TABLAS=${1}
+            ;;
+        -e) shift
+            EXCEPCIONES=${1}
+            ;;
+        *)  echo "${1} Opcion invalida"
+            ;;
+    esac
+    shift
+done
 
-rm -f database/migrations/*.php
+if [ -z "${PROYECTO}" -o -z "${TAREAS}" -o -z "${EXCEPCIONES}" ]; then
+    echo "SINTAXIS"
+    echo "`basename ${0}` <ARGS>"
+    echo "ARGS: -p nombreProyecto                        Nombre del proyecto Laravel = Nombre base de datos"
+    echo "      -t \"tabla1 tabla2 tabla3 tabla4 ...\"     Tablas de la base de datos que se van a procesar"
+    echo "      -e \"tabla2 tabla4 ...\">                  Tablas de la base de datos que solo se procesaran para migraciones"
+    exit
+fi
+
+cd ${WWW}
+git clone git clone https://github.com/softfarr/${PROYECTO}.git
+
+cd ${WWW}/${PROYECTO}
+composer install
+
+php artisan migrate:reset
 
 echo "DROP SCHEMA IF EXISTS \`"${PROYECTO}"\` ; CREATE SCHEMA IF NOT EXISTS \`"${PROYECTO}"\` DEFAULT CHARACTER SET utf8 COLLATE utf8_spanish_ci;" | mysql -u root -p
 
