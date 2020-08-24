@@ -11,8 +11,10 @@
 export WWW=/var/www/html
 export TABLAS="permiso rol usuario libro permiso_rol usuario_rol libro_usuario"
 export EXCEPCIONES="permiso_rol usuario_rol libro_usuario"
+export FORANEAS="permiso_rol:permiso,rol usuario_rol:usuario,rol libro_usuario:libro,usuario"
 export PROYECTO=
-export TABLA_EXCLUIDA=
+export ES_TABLA_EXCLUIDA=
+export ES_TABLA_CON_FORANEAS=
 
 clear
 
@@ -28,6 +30,9 @@ do
         -e) shift
             EXCEPCIONES=${1}
             ;;
+        -f) shift
+            FORANEAS=${1}
+            ;;
         *)  echo "${1} Opcion invalida"
             ;;
     esac
@@ -37,9 +42,10 @@ done
 if [ -z "${PROYECTO}" -o -z "${TABLAS}" -o -z "${EXCEPCIONES}" ]; then
     echo "SINTAXIS"
     echo "`basename ${0}` <ARGS>"
-    echo "ARGS: -p nombreProyecto                        Nombre del proyecto Laravel = Nombre base de datos"
-    echo "      -t \"tabla1 tabla2 tabla3 tabla4 ...\"     Tablas de la base de datos que se van a procesar"
-    echo "      -e \"tabla2 tabla4 ...\">                  Tablas de la base de datos que solo se procesaran para migraciones"
+    echo "ARGS: -p nombreProyecto                               Nombre del proyecto Laravel = Nombre base de datos"
+    echo "      -t \"tabla1 tabla2 tabla3 tabla4 ...\"          Tablas de la base de datos que se van a procesar"
+    echo "      -e \"tabla2 tabla4 ...\">                       Tablas de la base de datos que solo se procesaran para migraciones"
+    echo "      -f \"tabla2:tabla1,tabla3 tabla4:tabla1 ...\">  Tablas de la base de datos con llaves foráneas"
     exit
 fi
 
@@ -62,18 +68,32 @@ echo "DROP SCHEMA IF EXISTS \`"${PROYECTO}"\` ; CREATE SCHEMA IF NOT EXISTS \`"$
 
 for TABLA in ${TABLAS}
 do
+    ES_TABLA_EXCLUIDA=false
     for EXCEPCION in ${EXCEPCIONES}
     do
         if [ ${TABLA} == ${EXCEPCION} ]; then
-            TABLA_EXCLUIDA=true
+            ES_TABLA_EXCLUIDA=true
             break
-        else
-            TABLA_EXCLUIDA=false
         fi
+    done
+    ES_TABLA_CON_FORANEAS=false
+    for FORANEA in ${FORANEAS}
+    do
+        SOLO_TAB_FORANEAS=`echo ${FORANEA} | awk 'BEGIN{FS=":"}{print $1}'`
+        LAS_TAB_FORANEAS=`echo ${FORANEA} | awk 'BEGIN{FS=":"}{print $2}'`
+        for TABLA_EVALUADA in ${SOLO_TAB_FORANEAS}
+        do
+            if [ ${TABLA} == ${TABLA_EVALUADA} ]; then
+                ES_TABLA_CON_FORANEAS=true
+                TABLA1=`echo ${LAS_TAB_FORANEAS} | awk 'BEGIN{FS=","}{print $1}'`
+                TABLA2=`echo ${LAS_TAB_FORANEAS} | awk 'BEGIN{FS=","}{print $2}'`
+                break
+            fi
+        done
     done
     TABLACAP=`echo ${TABLA} | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2,length($0)-1))}'`
 
-    if ! ${TABLA_EXCLUIDA} ; then
+    if ! ${ES_TABLA_EXCLUIDA} ; then
         rm -f database/seeds/Tabla${TABLACAP}Seeder.php
         rm -f database/factories/${TABLACAP}Factory.php
         rm -f app/Models/${TABLACAP}.php
@@ -100,8 +120,33 @@ do
     echo "\$table->foreign(\$campo2,\$fk_name2)->references('id')->on(\$tabla2)->onDelete('restrict')->onUpdate('restrict');"
     echo "//Fin llaves foráneas"
     php artisan make:migration crear_tabla_${TABLA} --create=${TABLA}
+    if ${ES_TABLA_CON_FORANEAS} ; then
+        MIGRACION_CON_FORANEAS=`ls database/migrations/*_${TABLA}.php`
+        cat ${MIGRACION_CON_FORANEAS} | awk -v p="'" -v tabla1=${TABLA1} -v tabla2=${TABLA2} '
+        index($0,"$table->bigIncrements(" p "id" p ");")>0{
+            print $0
+            print "\t\t\t" "//Inicio llaves foráneas"
+            print "\t\t\t" "$tabla1=" p tabla1 p ";"
+            print "\t\t\t" "$tabla2=" p tabla2 p ";"
+            print "\t\t\t" "$campo1=$tabla1." p "_id" p ";"
+            print "\t\t\t" "$fk_name1=" p "fk_" p ".\$tabla1.\$tabla2." p "_" p ".\$tabla1;"
+            print "\t\t\t" "$campo2=\$tabla2." p "_id" p ";"
+            print "\t\t\t" "$fk_name2=" p "fk_" p ".\$tabla1.\$tabla2." p "_" p ".\$tabla2;"
+            print "\t\t\t" "$table->unsignedBigInteger(\$campo1);"
+            print "\t\t\t" "$table->foreign(\$campo1,\$fk_name1)->references(" p "id" p ")->on(\$tabla1)->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
+            print "\t\t\t" "$table->unsignedBigInteger(\$campo2);"
+            print "\t\t\t" "$table->foreign(\$campo2,\$fk_name2)->references(" p "id" p ")->on(\$tabla2)->onDelete(" p "restrict" p ")->onUpdate(" p "restrict" p ");"
+            print "\t\t\t" "//Fin llaves foráneas"
+        }
+        index($0,"$table->bigIncrements(" p "id" p ");")==0{print $0}
+        ' > ${MIGRACION_CON_FORANEAS}1
+        mv ${MIGRACION_CON_FORANEAS}1 ${MIGRACION_CON_FORANEAS}
+    fi
+    continue
     echo
-    if ${TABLA_EXCLUIDA} ; then
+
+    continue
+    if ${ES_TABLA_EXCLUIDA} ; then
         continue
     fi
     echo "Modelo de tabla ${TABLA}."
