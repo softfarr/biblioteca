@@ -28,6 +28,8 @@ class CrearTablaPermisoRol extends Migration
             $table->foreign($campo2,$fk_name2)->references('id')->on($tabla2)->onDelete('restrict')->onUpdate('restrict');
             //fin Llaves foráneas
             $table->timestamps();
+            $table->charset='utf8';
+            $table->collation='utf8_spanish_ci';
         });
     }
 

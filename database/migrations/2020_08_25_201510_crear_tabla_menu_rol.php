@@ -3,9 +3,8 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use phpDocumentor\Reflection\Types\Boolean;
 
-class CrearTablaUsuarioRol extends Migration
+class CrearTablaMenuRol extends Migration
 {
     /**
      * Run the migrations.
@@ -14,10 +13,10 @@ class CrearTablaUsuarioRol extends Migration
      */
     public function up()
     {
-        Schema::create('usuario_rol', function (Blueprint $table) {
+        Schema::create('menu_rol', function (Blueprint $table) {
             $table->bigIncrements('id');
             //inicio Llaves foráneas
-            $tabla1='usuario';
+            $tabla1='menu';
             $tabla2='rol';
             $campo1=$tabla1.'_id';
             $fk_name1='fk_'.$tabla1.$tabla2.'_'.$tabla1;
@@ -28,7 +27,6 @@ class CrearTablaUsuarioRol extends Migration
             $table->unsignedBigInteger($campo2);
             $table->foreign($campo2,$fk_name2)->references('id')->on($tabla2)->onDelete('restrict')->onUpdate('restrict');
             //fin Llaves foráneas
-            $table->Boolean('estado');
             $table->timestamps();
             $table->charset='utf8';
             $table->collation='utf8_spanish_ci';
@@ -42,6 +40,6 @@ class CrearTablaUsuarioRol extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('usuario_rol');
+        Schema::dropIfExists('menu_rol');
     }
 }

@@ -32,6 +32,8 @@ class CrearTablaLibroUsuario extends Migration
             $table->boolean('estado');
             $table->date('fecha_devolucion');
             $table->timestamps();
+            $table->charset='utf8';
+            $table->collation='utf8_spanish_ci';
         });
     }
 

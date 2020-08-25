@@ -18,6 +18,8 @@ class CrearTablaPermiso extends Migration
             $table->string('nombre',50);
             $table->string('slug',50);
             $table->timestamps();
+            $table->charset='utf8';
+            $table->collation='utf8_spanish_ci';
         });
     }
 

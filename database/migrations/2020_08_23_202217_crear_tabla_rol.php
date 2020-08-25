@@ -17,6 +17,8 @@ class CrearTablaRol extends Migration
             $table->bigIncrements('id');
             $table->string('nombre',50)->unique();
             $table->timestamps();
+            $table->charset='utf8';
+            $table->collation='utf8_spanish_ci';
         });
     }
 
