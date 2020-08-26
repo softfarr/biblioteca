@@ -1,7 +1,7 @@
 @extends("theme.$theme.layout")
 
 @section('titulo')
-    Permisos
+    Menus
 @endsection
 
 @section('contenido')
@@ -12,7 +12,7 @@
             <div class="col-lg-12">
                 <div class="box box-primary">
                     <div class="box-header with-border">
-                        <h3 class="box-title">Permisos</h3>
+                        <h3 class="box-title">Sistema de Menús</h3>
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body table-responsive no-padding">
@@ -21,21 +21,17 @@
                                 <tr>
                                     <th>Id</th>
                                     <th>Nombre</th>
-                                    <th>Slug</th>
                                     <th style="width: 40px">Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($permisos as $permiso)
+                                @foreach ($menus as $menu)
                                     <tr>
                                         <td>
-                                            {{$permiso->id}}
+                                            {{$menu->id}}
                                         </td>
                                         <td>
-                                            {{$permiso->nombre}}
-                                        </td>
-                                        <td>
-                                            {{$permiso->slug}}
+                                            {{$menu->nombre}}
                                         </td>
                                         <td>
                                             <div class="progress progress-xs progress-striped active">
